@@ -9,10 +9,12 @@ echo "      🚀 AutoClip Studio — AI Video Clipper & Editor        "
 echo "  (Bring Your Own Key & 100% Local LLM / Ollama Support)    "
 echo "============================================================"
 
-# Ensure FFmpeg is in PATH
-if [ -d "/home/ram-chandra/.gemini/antigravity/bin" ]; then
-  export PATH="/home/ram-chandra/.gemini/antigravity/bin:$PATH"
-fi
+# Ensure common local bin directories are in PATH if present
+for BIN_DIR in "$HOME/.gemini/antigravity/bin" "$HOME/.local/bin" "/usr/local/bin"; do
+  if [ -d "$BIN_DIR" ]; then
+    export PATH="$BIN_DIR:$PATH"
+  fi
+done
 
 # Check FFmpeg
 if ! command -v ffmpeg &> /dev/null; then

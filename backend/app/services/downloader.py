@@ -26,8 +26,16 @@ class VideoDownloader:
         # Discover ffmpeg binary path dynamically
         ffmpeg_path = shutil.which("ffmpeg") or shutil.which(FFMPEG_BIN)
         ffmpeg_dir = os.path.dirname(ffmpeg_path) if (ffmpeg_path and os.path.isabs(ffmpeg_path)) else None
-        if not ffmpeg_dir and os.path.exists("/home/ram-chandra/.gemini/antigravity/bin/ffmpeg"):
-            ffmpeg_dir = "/home/ram-chandra/.gemini/antigravity/bin"
+        if not ffmpeg_dir:
+            for candidate in [
+                os.path.expanduser("~/.gemini/antigravity/bin"),
+                os.path.expanduser("~/.local/bin"),
+                "/usr/local/bin",
+                "/usr/bin",
+            ]:
+                if os.path.exists(os.path.join(candidate, "ffmpeg")):
+                    ffmpeg_dir = candidate
+                    break
 
         ydl_opts = {
             # Prefer 1080p or 720p mp4 for smooth browser playback & fast processing
