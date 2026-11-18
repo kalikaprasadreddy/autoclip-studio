@@ -7,8 +7,10 @@ from ..models.schemas import TranscriptSegment, SubtitleWord, TranscriptionConfi
 # Cache loaded local model in memory for fast reuse
 _cached_local_model = None
 
-def get_local_whisper_model(model_size: str = "base"):
+def get_local_whisper_model(model_size: Optional[str] = None):
     global _cached_local_model
+    if model_size is None:
+        model_size = os.getenv("WHISPER_MODEL", "tiny" if os.getenv("RENDER") else "base")
     if _cached_local_model is None:
         try:
             from faster_whisper import WhisperModel
@@ -55,8 +57,8 @@ class Transcriber:
                     print(f"OpenAI transcription failed: {e}. Falling back to local whisper...")
 
         # 3. Real Local Whisper Transcription via faster-whisper
-        # This transcribes ANY video (e.g. uploaded TED talk or YouTube video) with real speech and exact timestamps!
-        local_segments = Transcriber._transcribe_local_whisper(audio_path)
+        model_size = os.getenv("WHISPER_MODEL", "tiny" if os.getenv("RENDER") else "base")
+        local_segments = Transcriber._transcribe_local_whisper(audio_path, model_size=model_size)
         if local_segments:
             return local_segments
 
@@ -72,7 +74,7 @@ class Transcriber:
             if model is None:
                 return []
 
-            print(f"Running faster-whisper on {audio_path}...")
+            print(f"Running faster-whisper ({model_size}) on {audio_path}...")
             segments_gen, info = model.transcribe(
                 audio_path,
                 beam_size=1,

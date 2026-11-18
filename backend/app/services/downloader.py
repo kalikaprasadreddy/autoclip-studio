@@ -1,6 +1,7 @@
 import os
 import uuid
 import re
+import shutil
 from pathlib import Path
 from typing import Dict, Any, Optional
 import yt_dlp
@@ -22,21 +23,23 @@ class VideoDownloader:
         video_id = str(uuid.uuid4())[:8]
         out_template = str(UPLOADS_DIR / f"{video_id}_%(title).50s.%(ext)s")
 
-        # Configure yt-dlp options
-        ffmpeg_dir = os.path.dirname(FFMPEG_BIN) if os.path.isabs(FFMPEG_BIN) else None
-        if not ffmpeg_dir:
+        # Discover ffmpeg binary path dynamically
+        ffmpeg_path = shutil.which("ffmpeg") or shutil.which(FFMPEG_BIN)
+        ffmpeg_dir = os.path.dirname(ffmpeg_path) if (ffmpeg_path and os.path.isabs(ffmpeg_path)) else None
+        if not ffmpeg_dir and os.path.exists("/home/ram-chandra/.gemini/antigravity/bin/ffmpeg"):
             ffmpeg_dir = "/home/ram-chandra/.gemini/antigravity/bin"
 
         ydl_opts = {
             # Prefer 1080p or 720p mp4 for smooth browser playback & fast processing
             'format': 'bestvideo[ext=mp4][height<=1080]+bestaudio[ext=m4a]/best[ext=mp4]/best',
             'outtmpl': out_template,
-            'ffmpeg_location': ffmpeg_dir,
             'quiet': True,
             'no_warnings': True,
             'noplaylist': True,
             'max_filesize': 500 * 1024 * 1024, # 500MB safety limit
         }
+        if ffmpeg_dir:
+            ydl_opts['ffmpeg_location'] = ffmpeg_dir
 
         with yt_dlp.YoutubeDL(ydl_opts) as ydl:
             try:
@@ -46,10 +49,11 @@ class VideoDownloader:
                 fallback_opts = {
                     'format': 'best',
                     'outtmpl': out_template,
-                    'ffmpeg_location': ffmpeg_dir,
                     'quiet': True,
                     'noplaylist': True,
                 }
+                if ffmpeg_dir:
+                    fallback_opts['ffmpeg_location'] = ffmpeg_dir
                 with yt_dlp.YoutubeDL(fallback_opts) as fydl:
                     info = fydl.extract_info(url, download=True)
 
