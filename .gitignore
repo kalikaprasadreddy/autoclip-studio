@@ -1,0 +1,22 @@
+# Environments & virtualenvs
+backend/venv/
+venv/
+.env
+
+# Storage media files
+backend/storage/uploads/*
+backend/storage/audio/*
+backend/storage/clips/*
+backend/storage/renders/*
+!backend/storage/.gitkeep
+
+# Node & Frontend
+frontend/node_modules/
+frontend/dist/
+
+# Python cache
+__pycache__/
+*.pyc
+
+# OS Files
+.DS_Store
